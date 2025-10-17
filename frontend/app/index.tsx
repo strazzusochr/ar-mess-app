@@ -471,7 +471,10 @@ export default function MainCamera() {
           </View>
         </Animated.View>
       </CameraView>
-    </View>
+      )}
+
+      {/* Always show UI overlays on top */}
+      <View style={styles.uiOverlay} pointerEvents="box-none">
   );
 }
 
