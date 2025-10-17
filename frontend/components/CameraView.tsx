@@ -61,6 +61,12 @@ export default function CameraView() {
       return;
     }
 
+    // For volume mode, show input modal instead of saving immediately
+    if (currentMode === 'volume' && currentPoints.length >= 3) {
+      setShowVolumeInput(true);
+      return;
+    }
+
     Alert.prompt(
       'Messung speichern',
       'Geben Sie einen Namen ein:',
@@ -75,6 +81,52 @@ export default function CameraView() {
             // Note: In production, convert uri to base64
             await saveMeasurement(name, uri);
             Alert.alert('Erfolg', 'Messung gespeichert!');
+          } catch (error) {
+            console.error('Error saving:', error);
+            Alert.alert('Fehler', 'Fehler beim Speichern');
+          }
+        }
+      }
+    );
+  };
+
+  const handleVolumeCalculate = async (height: number) => {
+    const result = calculateResult();
+    if (!result.area) {
+      Alert.alert('Fehler', 'Fläche konnte nicht berechnet werden');
+      return;
+    }
+
+    // Convert height from m to mm for calculation
+    const heightMm = unit === 'metric' ? height * 1000 : height * 304.8;
+    const volume = result.area * heightMm;
+
+    setShowVolumeInput(false);
+
+    Alert.prompt(
+      'Volumen berechnet',
+      `Volumen: ${formatVolume(volume, unit)}\n\nGeben Sie einen Namen ein:`,
+      async (name) => {
+        if (name) {
+          try {
+            const uri = await captureRef(viewRef, {
+              format: 'png',
+              quality: 0.8,
+            });
+            
+            // Save with volume included
+            const measurement = {
+              name,
+              mode: currentMode,
+              points: currentPoints,
+              calibrationScale: isCalibrated ? 1 : 1,
+              result: { ...result, volume },
+              unit,
+              imageData: uri,
+            };
+            
+            await saveMeasurement(name, uri);
+            Alert.alert('Erfolg', 'Volumenmessung gespeichert!');
           } catch (error) {
             console.error('Error saving:', error);
             Alert.alert('Fehler', 'Fehler beim Speichern');
