@@ -541,6 +541,37 @@ const styles = StyleSheet.create({
     ...Typography.body,
     fontWeight: '600',
   },
+  skipButton: {
+    marginTop: Spacing.md,
+    padding: Spacing.md,
+  },
+  skipButtonText: {
+    color: Colors.textSecondary,
+    ...Typography.caption,
+    textDecorationLine: 'underline',
+  },
+  mockCamera: {
+    flex: 1,
+    backgroundColor: Colors.background,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  mockCameraOverlay: {
+    alignItems: 'center',
+    gap: Spacing.md,
+  },
+  mockCameraText: {
+    color: Colors.textPrimary,
+    ...Typography.h3,
+    marginTop: Spacing.md,
+  },
+  mockCameraSubtext: {
+    color: Colors.textSecondary,
+    ...Typography.caption,
+  },
+  uiOverlay: {
+    ...StyleSheet.absoluteFillObject,
+  },
   camera: {
     flex: 1,
   },
