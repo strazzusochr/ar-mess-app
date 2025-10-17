@@ -23,7 +23,7 @@ export default function HomeScreen() {
       <StatusBar barStyle="light-content" />
       <View style={styles.content}>
         <View style={styles.header}>
-          <Ionicons name="ruler" size={64} color="#2196F3" />
+          <Ionicons name="calculator" size={64} color="#2196F3" />
           <Text style={styles.title}>AR Mess-App</Text>
           <Text style={styles.subtitle}>
             Professionelle Distanz-, Flächen- und Volumenmessung
