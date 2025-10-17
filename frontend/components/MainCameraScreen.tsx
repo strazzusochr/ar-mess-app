@@ -441,7 +441,15 @@ export default function MainCameraScreen() {
 
             {currentPoints.length === 1 && (
               <>
-                <Circle cx={currentPoints[0].x} cy={currentPoints[0].y} r="5" fill={Colors.primary} />
+                <SvgText
+                  x={currentPoints[0].x}
+                  y={currentPoints[0].y + 5}
+                  fill={Colors.primary}
+                  fontSize="20"
+                  textAnchor="middle"
+                >
+                  😊
+                </SvgText>
                 <SvgText
                   x={currentPoints[0].x}
                   y={currentPoints[0].y - 15}
