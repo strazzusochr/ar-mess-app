@@ -190,31 +190,43 @@ export default function MainCamera() {
 
   return (
     <View style={styles.container}>
-      <CameraView 
-        ref={cameraRef}
-        style={styles.camera}
-        facing="back"
-      >
-        {/* Filter Overlay for IR/Thermal */}
-        {filter !== 'none' && (
-          <View style={[
-            styles.filterOverlay,
-            filter === 'infrared' && styles.infraredOverlay,
-            filter === 'thermal' && styles.thermalOverlay,
-          ]} />
-        )}
+      {/* Mock Camera for Web */}
+      {(isWeb || skipPermissions) && !cameraRef.current ? (
+        <View style={styles.mockCamera}>
+          <View style={styles.mockCameraOverlay}>
+            <Ionicons name="camera-outline" size={80} color={Colors.border} />
+            <Text style={styles.mockCameraText}>Kamera-Vorschau</Text>
+            <Text style={styles.mockCameraSubtext}>
+              {isWeb ? 'Web-Demo-Modus' : 'Test-Modus ohne Kamera'}
+            </Text>
+          </View>
+        </View>
+      ) : (
+        <CameraView 
+          ref={cameraRef}
+          style={styles.camera}
+          facing="back"
+        >
+          {/* Filter Overlay for IR/Thermal */}
+          {filter !== 'none' && (
+            <View style={[
+              styles.filterOverlay,
+              filter === 'infrared' && styles.infraredOverlay,
+              filter === 'thermal' && styles.thermalOverlay,
+            ]} />
+          )}
 
-        {/* Touch Area for Measurement */}
-        {cameraMode === 'measure' && (
-          <TouchableOpacity 
-            style={StyleSheet.absoluteFill} 
-            activeOpacity={1}
-            onPress={handleTap}
-          >
-            <View style={styles.crosshair}>
-              <View style={styles.crosshairH} />
-              <View style={styles.crosshairV} />
-            </View>
+          {/* Touch Area for Measurement */}
+          {cameraMode === 'measure' && (
+            <TouchableOpacity 
+              style={StyleSheet.absoluteFill} 
+              activeOpacity={1}
+              onPress={handleTap}
+            >
+              <View style={styles.crosshair}>
+                <View style={styles.crosshairH} />
+                <View style={styles.crosshairV} />
+              </View>
 
             <Svg style={StyleSheet.absoluteFill} pointerEvents="none">
               {measureMode === 'distance' && currentPoints.length >= 2 && (
