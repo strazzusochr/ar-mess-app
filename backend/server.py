@@ -125,6 +125,10 @@ async def export_measurement(measurement_id: str, format: str = "json"):
     if not measurement:
         raise HTTPException(status_code=404, detail="Measurement not found")
     
+    # Remove MongoDB's _id field to avoid serialization issues
+    if "_id" in measurement:
+        del measurement["_id"]
+    
     if format == "json":
         return measurement
     elif format == "csv":
