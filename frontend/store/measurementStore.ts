@@ -75,7 +75,10 @@ export const useMeasurementStore = create<MeasurementState>((set, get) => ({
 
   clearPoints: () => set({ currentPoints: [] }),
 
-  setCalibration: (scale) => set({ calibrationScale: scale, isCalibrated: true }),
+  setCalibration: (scale) => {
+    console.log('Setting calibration scale:', scale);
+    set({ calibrationScale: scale, isCalibrated: true });
+  },
 
   toggleUnit: () => set((state) => ({ unit: state.unit === 'metric' ? 'imperial' : 'metric' })),
 
