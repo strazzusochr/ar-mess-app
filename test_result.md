@@ -333,7 +333,17 @@ metadata:
 
 test_plan:
   current_focus:
-    - "All backend API endpoints tested and working"
+    - "Permission Screen"
+    - "Camera Start and Demo Mode"
+    - "Top Bar Controls"
+    - "Bottom Menu Mode Selection"
+    - "Settings Panel"
+    - "Calibration System"
+    - "Measure Mode Selector"
+    - "Touch Events and Measurements"
+    - "Measurement Calculations"
+    - "Control Buttons"
+    - "Responsive Design"
   stuck_tasks: []
   test_all: true
   test_priority: "high_first"
