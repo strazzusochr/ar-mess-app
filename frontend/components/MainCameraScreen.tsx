@@ -380,7 +380,15 @@ export default function MainCameraScreen() {
                         )}
                       </>
                     )}
-                    <Circle cx={point.x} cy={point.y} r="5" fill={Colors.distance} />
+                    <SvgText
+                      x={point.x}
+                      y={point.y + 5}
+                      fill={Colors.distance}
+                      fontSize="20"
+                      textAnchor="middle"
+                    >
+                      😊
+                    </SvgText>
                     <SvgText
                       x={point.x}
                       y={point.y - 15}
