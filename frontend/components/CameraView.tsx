@@ -170,7 +170,7 @@ export default function CameraView() {
             </>
           )}
 
-          {currentMode === 'area' && currentPoints.length >= 3 && (
+          {(currentMode === 'area' || currentMode === 'volume') && currentPoints.length >= 3 && (
             <>
               <Polygon
                 points={currentPoints.map((p) => `${p.x},${p.y}`).join(' ')}
