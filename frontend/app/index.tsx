@@ -83,7 +83,11 @@ export default function MainCamera() {
     );
   }
 
-  if (!cameraPermission.granted || !mediaPermission.granted || !audioPermission.granted) {
+  // Skip permissions for web browser (testing mode)
+  const isWeb = Platform.OS === 'web';
+  const [skipPermissions, setSkipPermissions] = useState(false);
+  
+  if (!isWeb && !skipPermissions && (!cameraPermission.granted || !mediaPermission.granted || !audioPermission.granted)) {
     return (
       <View style={styles.permissionContainer}>
         <Ionicons name="camera-outline" size={64} color={Colors.primary} />
@@ -100,6 +104,13 @@ export default function MainCamera() {
           }}
         >
           <Text style={styles.permissionButtonText}>Berechtigungen erteilen</Text>
+        </TouchableOpacity>
+        
+        <TouchableOpacity 
+          style={styles.skipButton} 
+          onPress={() => setSkipPermissions(true)}
+        >
+          <Text style={styles.skipButtonText}>Überspringen (Test-Modus)</Text>
         </TouchableOpacity>
       </View>
     );
