@@ -228,8 +228,28 @@ export default function CameraView() {
           </TouchableOpacity>
         </View>
       </ExpoCameraView>
+
+      {/* Volume Input Modal */}
+      {currentMode === 'volume' && result.area && (
+        <VolumeInput
+          visible={showVolumeInput}
+          onClose={() => setShowVolumeInput(false)}
+          onCalculate={handleVolumeCalculate}
+          areaValue={result.area / 1000000}
+          unit={unit}
+        />
+      )}
     </View>
   );
+}
+
+function formatVolume(mm3: number, unit: string): string {
+  if (unit === 'metric') {
+    return `${(mm3 / 1000000000).toFixed(2)} m³`;
+  } else {
+    const cuft = mm3 / 28316846.592;
+    return `${cuft.toFixed(2)} cu ft`;
+  }
 }
 
 function formatMeasurement(result: any, mode: string, unit: string): string {
@@ -246,7 +266,7 @@ function formatMeasurement(result: any, mode: string, unit: string): string {
     }
   }
 
-  if (mode === 'area' && result.area) {
+  if ((mode === 'area' || mode === 'volume') && result.area) {
     const mm2 = result.area;
     if (unit === 'metric') {
       return `${(mm2 / 1000000).toFixed(2)} m²`;
