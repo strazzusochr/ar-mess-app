@@ -296,12 +296,44 @@ export default function MainCameraScreen() {
         </View>
       ) : (
         <CameraView ref={cameraRef} style={styles.camera} facing="back">
-          {filter !== 'none' && (
-            <View style={[
-              styles.filterOverlay,
-              filter === 'infrared' && styles.infraredOverlay,
-              filter === 'thermal' && styles.thermalOverlay,
-            ]} />
+          {/* Fake Infrarot Filter */}
+          {filter === 'infrared' && (
+            <View style={styles.filterOverlay}>
+              <View style={styles.infraredGradient}>
+                <View style={styles.infraredTop} />
+                <View style={styles.infraredMiddle} />
+                <View style={styles.infraredBottom} />
+              </View>
+              <View style={styles.infraredScanlines} />
+              <Text style={styles.filterLabel}>INFRAROT MODUS</Text>
+              <View style={styles.infraredCrosshair}>
+                <View style={styles.infraredCrosshairH} />
+                <View style={styles.infraredCrosshairV} />
+              </View>
+            </View>
+          )}
+          
+          {/* Fake Thermal/Wärmebild Filter */}
+          {filter === 'thermal' && (
+            <View style={styles.filterOverlay}>
+              <View style={styles.thermalGradient}>
+                <View style={styles.thermalHot} />
+                <View style={styles.thermalWarm} />
+                <View style={styles.thermalCool} />
+                <View style={styles.thermalCold} />
+              </View>
+              <View style={styles.thermalNoise} />
+              <Text style={styles.filterLabel}>WÄRMEBILD MODUS</Text>
+              <View style={styles.thermalScale}>
+                <View style={[styles.thermalScaleBar, {backgroundColor: '#FF0000'}]} />
+                <View style={[styles.thermalScaleBar, {backgroundColor: '#FF8800'}]} />
+                <View style={[styles.thermalScaleBar, {backgroundColor: '#FFFF00'}]} />
+                <View style={[styles.thermalScaleBar, {backgroundColor: '#00FF00'}]} />
+                <View style={[styles.thermalScaleBar, {backgroundColor: '#0088FF'}]} />
+                <View style={[styles.thermalScaleBar, {backgroundColor: '#0000FF'}]} />
+              </View>
+              <Text style={styles.thermalTemp}>🔥 28.5°C</Text>
+            </View>
           )}
         </CameraView>
       )}
