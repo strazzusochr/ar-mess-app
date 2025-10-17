@@ -778,9 +778,93 @@ const styles = StyleSheet.create({
   camera: { flex: 1 },
   mockCamera: { flex: 1, backgroundColor: Colors.background, justifyContent: 'center', alignItems: 'center' },
   mockText: { color: Colors.textSecondary, ...Typography.body, marginTop: Spacing.md },
-  filterOverlay: { ...StyleSheet.absoluteFillObject, opacity: 0.25, pointerEvents: 'none' },
-  infraredOverlay: { backgroundColor: '#FF6B35' },
-  thermalOverlay: { backgroundColor: '#FFD23F' },
+  filterOverlay: { ...StyleSheet.absoluteFillObject, pointerEvents: 'none' },
+  
+  // Infrared Filter Styles
+  infraredGradient: { ...StyleSheet.absoluteFillObject, opacity: 0.6 },
+  infraredTop: { flex: 1, backgroundColor: 'rgba(255, 107, 53, 0.8)' },
+  infraredMiddle: { flex: 1, backgroundColor: 'rgba(255, 140, 0, 0.6)' },
+  infraredBottom: { flex: 1, backgroundColor: 'rgba(255, 69, 0, 0.4)' },
+  infraredScanlines: { 
+    ...StyleSheet.absoluteFillObject, 
+    backgroundColor: 'transparent',
+    opacity: 0.3,
+    backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,255,0,0.1) 2px, rgba(0,255,0,0.1) 4px)'
+  },
+  filterLabel: { 
+    position: 'absolute', 
+    top: 20, 
+    left: 20, 
+    color: '#00FF00', 
+    fontSize: 12, 
+    fontWeight: 'bold', 
+    fontFamily: 'monospace',
+    textShadowColor: 'rgba(0,0,0,0.8)',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 2
+  },
+  infraredCrosshair: { 
+    position: 'absolute', 
+    top: '50%', 
+    left: '50%', 
+    width: 40, 
+    height: 40, 
+    marginTop: -20, 
+    marginLeft: -20 
+  },
+  infraredCrosshairH: { 
+    position: 'absolute', 
+    width: 40, 
+    height: 2, 
+    backgroundColor: '#00FF00', 
+    top: 19, 
+    opacity: 0.8 
+  },
+  infraredCrosshairV: { 
+    position: 'absolute', 
+    width: 2, 
+    height: 40, 
+    backgroundColor: '#00FF00', 
+    left: 19, 
+    opacity: 0.8 
+  },
+  
+  // Thermal Filter Styles
+  thermalGradient: { ...StyleSheet.absoluteFillObject, opacity: 0.7 },
+  thermalHot: { flex: 1, backgroundColor: 'rgba(255, 0, 0, 0.6)' },
+  thermalWarm: { flex: 1, backgroundColor: 'rgba(255, 136, 0, 0.5)' },
+  thermalCool: { flex: 1, backgroundColor: 'rgba(255, 255, 0, 0.4)' },
+  thermalCold: { flex: 1, backgroundColor: 'rgba(0, 136, 255, 0.3)' },
+  thermalNoise: { 
+    ...StyleSheet.absoluteFillObject, 
+    backgroundColor: 'transparent',
+    opacity: 0.2
+  },
+  thermalScale: { 
+    position: 'absolute', 
+    right: 20, 
+    top: 100, 
+    width: 20, 
+    height: 120, 
+    borderRadius: 10,
+    overflow: 'hidden'
+  },
+  thermalScaleBar: { 
+    flex: 1, 
+    width: '100%' 
+  },
+  thermalTemp: { 
+    position: 'absolute', 
+    top: 60, 
+    left: 20, 
+    color: '#FF4500', 
+    fontSize: 16, 
+    fontWeight: 'bold', 
+    fontFamily: 'monospace',
+    textShadowColor: 'rgba(0,0,0,0.8)',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 2
+  },
   crosshair: { position: 'absolute', top: SCREEN_HEIGHT / 2 - 12, left: SCREEN_WIDTH / 2 - 12, width: 24, height: 24, pointerEvents: 'none' },
   crosshairH: { position: 'absolute', width: 24, height: 1, backgroundColor: 'rgba(255,255,255,0.6)', top: 11 },
   crosshairV: { position: 'absolute', width: 1, height: 24, backgroundColor: 'rgba(255,255,255,0.6)', left: 11 },
