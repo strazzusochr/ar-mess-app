@@ -197,8 +197,24 @@ export default function MainCameraScreen() {
                   stroke={Colors.primary}
                   strokeWidth="3"
                 />
-                <Circle cx={calibrationPoints[0].x} cy={calibrationPoints[0].y} r="10" fill={Colors.primary} />
-                <Circle cx={calibrationPoints[1].x} cy={calibrationPoints[1].y} r="10" fill={Colors.primary} />
+                <SvgText
+                  x={calibrationPoints[0].x}
+                  y={calibrationPoints[0].y + 7}
+                  fill={Colors.primary}
+                  fontSize="24"
+                  textAnchor="middle"
+                >
+                  😊
+                </SvgText>
+                <SvgText
+                  x={calibrationPoints[1].x}
+                  y={calibrationPoints[1].y + 7}
+                  fill={Colors.primary}
+                  fontSize="24"
+                  textAnchor="middle"
+                >
+                  😊
+                </SvgText>
               </>
             )}
           </Svg>
