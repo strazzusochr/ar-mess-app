@@ -177,7 +177,15 @@ export default function MainCameraScreen() {
 
           <Svg style={StyleSheet.absoluteFill} pointerEvents="none">
             {calibrationPoints.length === 1 && (
-              <Circle cx={calibrationPoints[0].x} cy={calibrationPoints[0].y} r="10" fill={Colors.primary} />
+              <SvgText
+                x={calibrationPoints[0].x}
+                y={calibrationPoints[0].y + 7}
+                fill={Colors.primary}
+                fontSize="24"
+                textAnchor="middle"
+              >
+                😊
+              </SvgText>
             )}
             {calibrationPoints.length === 2 && (
               <>
