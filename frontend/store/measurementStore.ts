@@ -96,7 +96,7 @@ export const useMeasurementStore = create<MeasurementState>((set, get) => ({
       return { distance: totalDistance };
     }
 
-    if (currentMode === 'area' && currentPoints.length >= 3) {
+    if ((currentMode === 'area' || currentMode === 'volume') && currentPoints.length >= 3) {
       // Shoelace formula for polygon area
       let area = 0;
       let perimeter = 0;
