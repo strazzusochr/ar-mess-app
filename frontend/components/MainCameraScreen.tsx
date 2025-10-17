@@ -415,7 +415,15 @@ export default function MainCameraScreen() {
                 />
                 {currentPoints.map((point, index) => (
                   <React.Fragment key={point.id}>
-                    <Circle cx={point.x} cy={point.y} r="5" fill={Colors.area} />
+                    <SvgText
+                      x={point.x}
+                      y={point.y + 5}
+                      fill={Colors.area}
+                      fontSize="20"
+                      textAnchor="middle"
+                    >
+                      😊
+                    </SvgText>
                     <SvgText
                       x={point.x}
                       y={point.y - 15}
