@@ -12,12 +12,14 @@ import { Ionicons } from '@expo/vector-icons';
 import Svg, { Line, Circle, Polygon } from 'react-native-svg';
 import { useMeasurementStore } from '../store/measurementStore';
 import { captureRef } from 'react-native-view-shot';
+import VolumeInput from './VolumeInput';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 export default function CameraView() {
   const [permission, requestPermission] = useCameraPermissions();
   const [facing, setFacing] = useState<'back' | 'front'>('back');
+  const [showVolumeInput, setShowVolumeInput] = useState(false);
   const viewRef = useRef(null);
 
   const {
