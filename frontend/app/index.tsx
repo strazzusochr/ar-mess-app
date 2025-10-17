@@ -474,7 +474,8 @@ export default function MainCamera() {
       )}
 
       {/* Always show UI overlays on top */}
-      <View style={styles.uiOverlay} pointerEvents="box-none">
+      <View style={styles.uiOverlay} pointerEvents="box-none" />
+    </View>
   );
 }
 
