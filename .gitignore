@@ -51,3 +51,7 @@ ENV/
 *.db
 *.sqlite
 
+-e 
+# Environment files
+*.env
+*.env.*
