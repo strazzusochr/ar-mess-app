@@ -177,15 +177,7 @@ export default function MainCameraScreen() {
 
           <Svg style={StyleSheet.absoluteFill} pointerEvents="none">
             {calibrationPoints.length === 1 && (
-              <SvgText
-                x={calibrationPoints[0].x}
-                y={calibrationPoints[0].y + 7}
-                fill={Colors.primary}
-                fontSize="24"
-                textAnchor="middle"
-              >
-                😊
-              </SvgText>
+              <Circle cx={calibrationPoints[0].x} cy={calibrationPoints[0].y} r={8} fill={Colors.primary} />
             )}
             {calibrationPoints.length === 2 && (
               <>
@@ -197,24 +189,8 @@ export default function MainCameraScreen() {
                   stroke={Colors.primary}
                   strokeWidth="3"
                 />
-                <SvgText
-                  x={calibrationPoints[0].x}
-                  y={calibrationPoints[0].y + 7}
-                  fill={Colors.primary}
-                  fontSize="24"
-                  textAnchor="middle"
-                >
-                  😊
-                </SvgText>
-                <SvgText
-                  x={calibrationPoints[1].x}
-                  y={calibrationPoints[1].y + 7}
-                  fill={Colors.primary}
-                  fontSize="24"
-                  textAnchor="middle"
-                >
-                  😊
-                </SvgText>
+                <Circle cx={calibrationPoints[0].x} cy={calibrationPoints[0].y} r={8} fill={Colors.primary} />
+                <Circle cx={calibrationPoints[1].x} cy={calibrationPoints[1].y} r={8} fill={Colors.primary} />
               </>
             )}
           </Svg>
@@ -265,13 +241,25 @@ export default function MainCameraScreen() {
     }
   };
 
+  // ✅ FIX: Video-Aufnahme repariert
   const handleStartRecording = async () => {
     if (!cameraRef.current || isRecording) return;
     try {
-      await cameraRef.current.recordAsync();
       setIsRecording(true);
+      const video = await cameraRef.current.recordAsync({
+        maxDuration: 60,
+        mute: false,
+      });
+      
+      if (video && video.uri) {
+        await MediaLibrary.saveToLibraryAsync(video.uri);
+        Alert.alert('✓', 'Video gespeichert');
+      }
+      setIsRecording(false);
     } catch (error) {
+      console.error('Video Error:', error);
       Alert.alert('Fehler', 'Aufnahme fehlgeschlagen');
+      setIsRecording(false);
     }
   };
 
@@ -279,16 +267,19 @@ export default function MainCameraScreen() {
     if (!cameraRef.current) return;
     try {
       cameraRef.current.stopRecording();
-      setIsRecording(false);
-      Alert.alert('✓', 'Video gespeichert');
     } catch (error) {
+      console.error('Stop Recording Error:', error);
       setIsRecording(false);
     }
   };
 
+  // ✅ FIX: Volumenberechnung korrigiert (A × B × H)
   const handleVolumeCalculate = () => {
     const result = calculateResult();
-    if (!result.area) return;
+    if (!result.area) {
+      Alert.alert('Fehler', 'Erst Fläche (min. 3 Punkte) messen');
+      return;
+    }
     
     const heightValue = parseFloat(volumeHeight);
     if (isNaN(heightValue) || heightValue <= 0) {
@@ -296,12 +287,23 @@ export default function MainCameraScreen() {
       return;
     }
 
+    // Konvertiere alles zu mm
+    const areaMm2 = result.area; // area ist bereits in mm²
     const heightMm = measureUnit === 'mm' ? heightValue : measureUnit === 'cm' ? heightValue * 10 : heightValue * 1000;
-    const volume = result.area * heightMm;
+    
+    // Volumen = Fläche × Höhe
+    const volumeMm3 = areaMm2 * heightMm;
+    const volumeCm3 = volumeMm3 / 1000;
+    const volumeM3 = volumeMm3 / 1000000000;
     
     Alert.alert(
-      'Volumen berechnet',
-      `${formatVolume(volume, measureUnit)}`,
+      'Volumen (A × B × H)',
+      `Grundfläche: ${formatMeasurement(areaMm2, measureUnit, 'area')}\n` +
+      `Höhe: ${heightValue} ${measureUnit}\n\n` +
+      `Volumen:\n` +
+      `• ${volumeMm3.toFixed(0)} mm³\n` +
+      `• ${volumeCm3.toFixed(2)} cm³\n` +
+      `• ${volumeM3.toFixed(6)} m³`,
       [{ text: 'OK' }]
     );
     setShowVolumeInput(false);
@@ -328,7 +330,6 @@ export default function MainCameraScreen() {
                 <View style={styles.infraredMiddle} />
                 <View style={styles.infraredBottom} />
               </View>
-              <View style={styles.infraredScanlines} />
               <Text style={styles.filterLabel}>INFRAROT MODUS</Text>
               <View style={styles.infraredCrosshair}>
                 <View style={styles.infraredCrosshairH} />
@@ -346,7 +347,6 @@ export default function MainCameraScreen() {
                 <View style={styles.thermalCool} />
                 <View style={styles.thermalCold} />
               </View>
-              <View style={styles.thermalNoise} />
               <Text style={styles.filterLabel}>WÄRMEBILD MODUS</Text>
               <View style={styles.thermalScale}>
                 <View style={[styles.thermalScaleBar, {backgroundColor: '#FF0000'}]} />
@@ -404,15 +404,7 @@ export default function MainCameraScreen() {
                         )}
                       </>
                     )}
-                    <SvgText
-                      x={point.x}
-                      y={point.y + 5}
-                      fill={Colors.distance}
-                      fontSize="20"
-                      textAnchor="middle"
-                    >
-                      😊
-                    </SvgText>
+                    <Circle cx={point.x} cy={point.y} r={8} fill={Colors.distance} />
                     <SvgText
                       x={point.x}
                       y={point.y - 15}
@@ -439,15 +431,7 @@ export default function MainCameraScreen() {
                 />
                 {currentPoints.map((point, index) => (
                   <React.Fragment key={point.id}>
-                    <SvgText
-                      x={point.x}
-                      y={point.y + 5}
-                      fill={Colors.area}
-                      fontSize="20"
-                      textAnchor="middle"
-                    >
-                      😊
-                    </SvgText>
+                    <Circle cx={point.x} cy={point.y} r={8} fill={Colors.area} />
                     <SvgText
                       x={point.x}
                       y={point.y - 15}
@@ -465,15 +449,7 @@ export default function MainCameraScreen() {
 
             {currentPoints.length === 1 && (
               <>
-                <SvgText
-                  x={currentPoints[0].x}
-                  y={currentPoints[0].y + 5}
-                  fill={Colors.primary}
-                  fontSize="20"
-                  textAnchor="middle"
-                >
-                  😊
-                </SvgText>
+                <Circle cx={currentPoints[0].x} cy={currentPoints[0].y} r={8} fill={Colors.primary} />
                 <SvgText
                   x={currentPoints[0].x}
                   y={currentPoints[0].y - 15}
@@ -486,22 +462,89 @@ export default function MainCameraScreen() {
                 </SvgText>
               </>
             )}
+
+            {/* 2 Punkte für Area/Volume → zeige Rechteck */}
+            {(measureMode === 'area' || measureMode === 'volume') && currentPoints.length === 2 && (
+              <>
+                <Line
+                  x1={currentPoints[0].x}
+                  y1={currentPoints[0].y}
+                  x2={currentPoints[1].x}
+                  y2={currentPoints[0].y}
+                  stroke={Colors.area}
+                  strokeWidth="2"
+                  strokeDasharray="5,5"
+                />
+                <Line
+                  x1={currentPoints[1].x}
+                  y1={currentPoints[0].y}
+                  x2={currentPoints[1].x}
+                  y2={currentPoints[1].y}
+                  stroke={Colors.area}
+                  strokeWidth="2"
+                  strokeDasharray="5,5"
+                />
+                <Line
+                  x1={currentPoints[1].x}
+                  y1={currentPoints[1].y}
+                  x2={currentPoints[0].x}
+                  y2={currentPoints[1].y}
+                  stroke={Colors.area}
+                  strokeWidth="2"
+                  strokeDasharray="5,5"
+                />
+                <Line
+                  x1={currentPoints[0].x}
+                  y1={currentPoints[1].y}
+                  x2={currentPoints[0].x}
+                  y2={currentPoints[0].y}
+                  stroke={Colors.area}
+                  strokeWidth="2"
+                  strokeDasharray="5,5"
+                />
+                {currentPoints.map((point, index) => (
+                  <React.Fragment key={point.id}>
+                    <Circle cx={point.x} cy={point.y} r={8} fill={Colors.area} />
+                    <SvgText
+                      x={point.x}
+                      y={point.y - 15}
+                      fill={Colors.area}
+                      fontSize="12"
+                      fontWeight="bold"
+                      textAnchor="middle"
+                    >
+                      P{index + 1}
+                    </SvgText>
+                  </React.Fragment>
+                ))}
+              </>
+            )}
           </Svg>
 
-          {/* Results Display */}
+          {/* ✅ FIX: Results Display - zeigt alle Einheiten */}
           {(result.distance || result.area) && (
             <View style={styles.resultContainer}>
               {result.distance && (
-                <View style={styles.resultItem}>
+                <View style={styles.resultBox}>
                   <Text style={styles.resultLabel}>Gesamtlänge:</Text>
                   <Text style={styles.resultValue}>{formatMeasurement(result.distance, measureUnit, 'distance')}</Text>
+                  <View style={styles.allUnitsBox}>
+                    <Text style={styles.unitText}>{formatMeasurement(result.distance, 'mm', 'distance')}</Text>
+                    <Text style={styles.unitText}>{formatMeasurement(result.distance, 'cm', 'distance')}</Text>
+                    <Text style={styles.unitText}>{formatMeasurement(result.distance, 'm', 'distance')}</Text>
+                  </View>
                 </View>
               )}
               {result.area && (
                 <>
-                  <View style={styles.resultItem}>
+                  <View style={styles.resultBox}>
                     <Text style={styles.resultLabel}>Fläche:</Text>
                     <Text style={styles.resultValue}>{formatMeasurement(result.area, measureUnit, 'area')}</Text>
+                    <View style={styles.allUnitsBox}>
+                      <Text style={styles.unitText}>{formatMeasurement(result.area, 'mm', 'area')}</Text>
+                      <Text style={styles.unitText}>{formatMeasurement(result.area, 'cm', 'area')}</Text>
+                      <Text style={styles.unitText}>{formatMeasurement(result.area, 'm', 'area')}</Text>
+                    </View>
                   </View>
                   {result.perimeter && (
                     <View style={styles.resultItem}>
@@ -514,7 +557,8 @@ export default function MainCameraScreen() {
                       style={styles.volumeButton}
                       onPress={() => setShowVolumeInput(true)}
                     >
-                      <Text style={styles.volumeButtonText}>Volumen berechnen</Text>
+                      <Ionicons name="cube-outline" size={20} color={Colors.dark} />
+                      <Text style={styles.volumeButtonText}>Volumen berechnen (A×B×H)</Text>
                     </TouchableOpacity>
                   )}
                 </>
@@ -550,22 +594,28 @@ export default function MainCameraScreen() {
         <View style={{ width: 40 }} />
       </View>
 
-      {/* Bottom Menu */}
+      {/* ✅ FIX: Besseres Bottom Menu */}
       <View style={styles.bottomMenu} pointerEvents="box-none">
         <View style={styles.modeRow}>
           <TouchableOpacity 
             style={[styles.modeButton, cameraMode === 'photo' && styles.modeButtonActive]}
-            onPress={() => setCameraMode('photo')}
+            onPress={() => {
+              setCameraMode('photo');
+              clearPoints();
+            }}
           >
-            <Ionicons name="camera-outline" size={20} color={Colors.light} />
+            <Ionicons name="camera" size={22} color={Colors.light} />
             <Text style={styles.modeButtonText}>Foto</Text>
           </TouchableOpacity>
 
           <TouchableOpacity 
             style={[styles.modeButton, cameraMode === 'video' && styles.modeButtonActive]}
-            onPress={() => setCameraMode('video')}
+            onPress={() => {
+              setCameraMode('video');
+              clearPoints();
+            }}
           >
-            <Ionicons name="videocam-outline" size={20} color={Colors.light} />
+            <Ionicons name="videocam" size={22} color={Colors.light} />
             <Text style={styles.modeButtonText}>Video</Text>
           </TouchableOpacity>
 
@@ -576,7 +626,7 @@ export default function MainCameraScreen() {
               toggleModeSelector();
             }}
           >
-            <Ionicons name="resize-outline" size={20} color={Colors.light} />
+            <Ionicons name="resize" size={22} color={Colors.light} />
             <Text style={styles.modeButtonText}>Messen</Text>
           </TouchableOpacity>
         </View>
@@ -594,17 +644,20 @@ export default function MainCameraScreen() {
               onPress={isRecording ? handleStopRecording : handleStartRecording}
             >
               <View style={[styles.captureButtonInner, isRecording && styles.recordingInner]} />
+              {isRecording && (
+                <Text style={styles.recordingText}>REC</Text>
+              )}
             </TouchableOpacity>
           )}
 
           {cameraMode === 'measure' && currentPoints.length > 0 && (
             <View style={styles.measureControls}>
               <TouchableOpacity style={styles.controlButton} onPress={removeLastPoint}>
-                <Ionicons name="arrow-undo" size={20} color={Colors.light} />
+                <Ionicons name="arrow-undo" size={24} color={Colors.light} />
               </TouchableOpacity>
               {currentPoints.length >= 2 && (
                 <TouchableOpacity style={styles.controlButton} onPress={clearPoints}>
-                  <Ionicons name="refresh" size={20} color={Colors.light} />
+                  <Ionicons name="refresh" size={24} color={Colors.light} />
                 </TouchableOpacity>
               )}
             </View>
@@ -617,7 +670,7 @@ export default function MainCameraScreen() {
         <View style={styles.volumeModal}>
           <View style={styles.volumeModalContent}>
             <Text style={styles.volumeModalTitle}>Höhe eingeben</Text>
-            <Text style={styles.volumeModalLabel}>Fläche: {formatMeasurement(result.area || 0, measureUnit, 'area')}</Text>
+            <Text style={styles.volumeModalLabel}>Grundfläche: {formatMeasurement(result.area || 0, measureUnit, 'area')}</Text>
             <View style={styles.volumeInputRow}>
               <TextInput
                 style={styles.volumeInput}
@@ -630,7 +683,10 @@ export default function MainCameraScreen() {
               <Text style={styles.volumeUnit}>{measureUnit}</Text>
             </View>
             <View style={styles.volumeModalButtons}>
-              <TouchableOpacity style={styles.volumeModalButton} onPress={() => setShowVolumeInput(false)}>
+              <TouchableOpacity style={styles.volumeModalButton} onPress={() => {
+                setShowVolumeInput(false);
+                setVolumeHeight('');
+              }}>
                 <Text style={styles.volumeModalButtonText}>Abbrechen</Text>
               </TouchableOpacity>
               <TouchableOpacity style={[styles.volumeModalButton, styles.volumeModalButtonPrimary]} onPress={handleVolumeCalculate}>
@@ -644,47 +700,20 @@ export default function MainCameraScreen() {
       {/* Measure Mode Selector */}
       <Animated.View style={[styles.measureSelector, { transform: [{ translateY: slideAnim }] }]}>
         <View style={styles.selectorHandle} />
-        <Text style={styles.selectorTitle}>Messmodus</Text>
+        <Text style={styles.selectorTitle}>Messmodus wählen</Text>
         
-        <TouchableOpacity 
-          style={[styles.selectorItem, measureMode === 'distance' && styles.selectorItemActive]}
-          onPress={() => {
-            setMeasureMode('distance');
-            toggleModeSelector();
-          }}
-        >
-          <Ionicons name="resize-outline" size={24} color={Colors.distance} />
-          <View style={styles.selectorItemText}>
-            <Text style={styles.selectorItemTitle}>Distanz</Text>
-            <Text style={styles.selectorItemSubtitle}>Längen mit Segmentanzeige</Text>
-          </View>
-        </TouchableOpacity>
-
-        <TouchableOpacity 
-          style={[styles.selectorItem, measureMode === 'area' && styles.selectorItemActive]}
-          onPress={() => {
-            setMeasureMode('area');
-            toggleModeSelector();
-          }}
-        >
-          <Ionicons name="square-outline" size={24} color={Colors.area} />
-          <View style={styles.selectorItemText}>
-            <Text style={styles.selectorItemTitle}>Fläche</Text>
-            <Text style={styles.selectorItemSubtitle}>Polygon-Flächenberechnung</Text>
-          </View>
-        </TouchableOpacity>
-
         <TouchableOpacity 
           style={[styles.selectorItem, measureMode === 'volume' && styles.selectorItemActive]}
           onPress={() => {
             setMeasureMode('volume');
+            clearPoints();
             toggleModeSelector();
           }}
         >
-          <Ionicons name="cube-outline" size={24} color={Colors.volume} />
+          <Ionicons name="cube-outline" size={28} color={Colors.volume} />
           <View style={styles.selectorItemText}>
-            <Text style={styles.selectorItemTitle}>Volumen</Text>
-            <Text style={styles.selectorItemSubtitle}>Fläche × Höhe = m³</Text>
+            <Text style={styles.selectorItemTitle}>📦 Volumen (A × B × H)</Text>
+            <Text style={styles.selectorItemSubtitle}>Fläche messen + Höhe eingeben</Text>
           </View>
         </TouchableOpacity>
       </Animated.View>
@@ -703,9 +732,9 @@ export default function MainCameraScreen() {
             <Text style={styles.settingLabel}>MASSEINHEIT</Text>
             <View style={styles.settingOptions}>
               {[
-                { value: 'mm', label: 'Millimeter' },
-                { value: 'cm', label: 'Zentimeter' },
-                { value: 'm', label: 'Meter' }
+                { value: 'mm', label: 'Millimeter (mm)' },
+                { value: 'cm', label: 'Zentimeter (cm)' },
+                { value: 'm', label: 'Meter (m)' }
               ].map((unit) => (
                 <TouchableOpacity
                   key={unit.value}
@@ -738,12 +767,12 @@ export default function MainCameraScreen() {
           </View>
 
           <View style={styles.settingGroup}>
-            <Text style={styles.settingLabel}>KAMERA-FILTER</Text>
+            <Text style={styles.settingLabel}>KAMERA-FILTER (SPA)</Text>
             <View style={styles.settingOptions}>
               {[
                 { value: 'none', label: 'Normal' },
-                { value: 'infrared', label: 'Infrarot' },
-                { value: 'thermal', label: 'Wärmebild' },
+                { value: 'infrared', label: 'Infrarot (Spaß)' },
+                { value: 'thermal', label: 'Wärmebild (Spaß)' },
               ].map((f) => (
                 <TouchableOpacity
                   key={f.value}
@@ -769,12 +798,24 @@ export default function MainCameraScreen() {
               </View>
               <TouchableOpacity
                 style={styles.recalibrateButton}
-                onPress={() => setShowCalibration(true)}
+                onPress={() => {
+                  toggleSettings();
+                  setShowCalibration(true);
+                }}
               >
                 <Text style={styles.recalibrateButtonText}>Neu kalibrieren</Text>
               </TouchableOpacity>
             </View>
           )}
+
+          <View style={styles.settingGroup}>
+            <Text style={styles.settingLabel}>INFO</Text>
+            <View style={styles.infoBox}>
+              <Text style={styles.infoText}>AR Mess-App v1.0.0</Text>
+              <Text style={styles.infoText}>Präzise AR-Messungen</Text>
+              <Text style={styles.infoTextSmall}>Kalibrierung empfohlen für beste Ergebnisse</Text>
+            </View>
+          </View>
         </ScrollView>
       </Animated.View>
     </View>
@@ -799,19 +840,13 @@ function getSegmentLengths(points: any[], scale: number | null): string[] {
 function formatMeasurement(value: number, unit: string, type: 'distance' | 'area'): string {
   if (type === 'distance') {
     if (unit === 'mm') return `${value.toFixed(1)} mm`;
-    if (unit === 'cm') return `${(value / 10).toFixed(1)} cm`;
-    return `${(value / 1000).toFixed(2)} m`;
+    if (unit === 'cm') return `${(value / 10).toFixed(2)} cm`;
+    return `${(value / 1000).toFixed(4)} m`;
   } else {
     if (unit === 'mm') return `${value.toFixed(0)} mm²`;
-    if (unit === 'cm') return `${(value / 100).toFixed(1)} cm²`;
-    return `${(value / 1000000).toFixed(2)} m²`;
+    if (unit === 'cm') return `${(value / 100).toFixed(2)} cm²`;
+    return `${(value / 1000000).toFixed(6)} m²`;
   }
-}
-
-function formatVolume(value: number, unit: string): string {
-  if (unit === 'mm') return `${value.toFixed(0)} mm³`;
-  if (unit === 'cm') return `${(value / 1000).toFixed(1)} cm³`;
-  return `${(value / 1000000000).toFixed(3)} m³`;
 }
 
 const styles = StyleSheet.create({
@@ -833,12 +868,6 @@ const styles = StyleSheet.create({
   infraredTop: { flex: 1, backgroundColor: 'rgba(255, 107, 53, 0.8)' },
   infraredMiddle: { flex: 1, backgroundColor: 'rgba(255, 140, 0, 0.6)' },
   infraredBottom: { flex: 1, backgroundColor: 'rgba(255, 69, 0, 0.4)' },
-  infraredScanlines: { 
-    ...StyleSheet.absoluteFillObject, 
-    backgroundColor: 'transparent',
-    opacity: 0.3,
-    backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,255,0,0.1) 2px, rgba(0,255,0,0.1) 4px)'
-  },
   filterLabel: { 
     position: 'absolute', 
     top: 20, 
@@ -883,11 +912,6 @@ const styles = StyleSheet.create({
   thermalWarm: { flex: 1, backgroundColor: 'rgba(255, 136, 0, 0.5)' },
   thermalCool: { flex: 1, backgroundColor: 'rgba(255, 255, 0, 0.4)' },
   thermalCold: { flex: 1, backgroundColor: 'rgba(0, 136, 255, 0.3)' },
-  thermalNoise: { 
-    ...StyleSheet.absoluteFillObject, 
-    backgroundColor: 'transparent',
-    opacity: 0.2
-  },
   thermalScale: { 
     position: 'absolute', 
     right: 20, 
@@ -919,69 +943,270 @@ const styles = StyleSheet.create({
   topBar: { position: 'absolute', top: 50, left: 0, right: 0, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: Spacing.md },
   topCenter: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm },
   iconButton: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' },
-  calibrateButton: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,152,0,0.8)', paddingHorizontal: Spacing.md, paddingVertical: Spacing.sm, borderRadius: 16, gap: 4 },
-  calibrateText: { color: Colors.light, ...Typography.caption, fontWeight: '600' },
+  calibrateButton: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,152,0,0.9)', paddingHorizontal: Spacing.md, paddingVertical: Spacing.sm, borderRadius: 20, gap: 6 },
+  calibrateText: { color: Colors.light, ...Typography.caption, fontWeight: '700' },
   filterBadge: { backgroundColor: 'rgba(0,0,0,0.5)', paddingHorizontal: Spacing.md, paddingVertical: Spacing.sm, borderRadius: 16 },
   filterText: { color: Colors.light, ...Typography.caption, fontWeight: '500' },
-  resultContainer: { position: 'absolute', top: 120, left: 20, right: 20, backgroundColor: 'rgba(0,0,0,0.75)', padding: Spacing.md, borderRadius: BorderRadius.md, pointerEvents: 'none' },
+  
+  // ✅ Verbesserte Result Anzeige
+  resultContainer: { 
+    position: 'absolute', 
+    top: 120, 
+    left: 16, 
+    right: 16, 
+    backgroundColor: 'rgba(0,0,0,0.85)', 
+    padding: Spacing.lg, 
+    borderRadius: BorderRadius.lg, 
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
+    pointerEvents: 'none' 
+  },
+  resultBox: { marginBottom: Spacing.md },
   resultItem: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: Spacing.xs },
-  resultLabel: { color: Colors.textSecondary, ...Typography.caption },
-  resultValue: { color: Colors.primary, ...Typography.body, fontWeight: 'bold' },
-  volumeButton: { marginTop: Spacing.sm, backgroundColor: Colors.volume, padding: Spacing.sm, borderRadius: BorderRadius.sm, alignItems: 'center' },
-  volumeButtonText: { color: Colors.dark, ...Typography.caption, fontWeight: '600' },
-  bottomMenu: { position: 'absolute', bottom: 40, left: 0, right: 0, paddingHorizontal: Spacing.md },
-  modeRow: { flexDirection: 'row', justifyContent: 'center', gap: Spacing.sm, marginBottom: Spacing.lg },
-  modeButton: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.1)', paddingHorizontal: Spacing.md, paddingVertical: Spacing.sm, borderRadius: 20, gap: 4, borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)' },
-  modeButtonActive: { backgroundColor: 'rgba(255,255,255,0.25)', borderColor: Colors.primary },
-  modeButtonText: { color: Colors.light, fontSize: 12, fontWeight: '300' },
+  resultLabel: { color: Colors.textSecondary, ...Typography.caption, fontSize: 11, textTransform: 'uppercase', letterSpacing: 1 },
+  resultValue: { color: Colors.primary, ...Typography.h3, fontWeight: 'bold', marginTop: 4 },
+  allUnitsBox: { 
+    flexDirection: 'row', 
+    gap: Spacing.sm, 
+    marginTop: Spacing.xs,
+    flexWrap: 'wrap'
+  },
+  unitText: { 
+    color: Colors.textMuted, 
+    fontSize: 11, 
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6
+  },
+  volumeButton: { 
+    marginTop: Spacing.md, 
+    backgroundColor: Colors.volume, 
+    padding: Spacing.md, 
+    borderRadius: BorderRadius.md, 
+    alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 8,
+    pointerEvents: 'auto'
+  },
+  volumeButtonText: { color: Colors.dark, ...Typography.body, fontWeight: '700' },
+  
+  // ✅ Verbessertes Bottom Menu
+  bottomMenu: { position: 'absolute', bottom: 30, left: 0, right: 0, paddingHorizontal: Spacing.md },
+  modeRow: { flexDirection: 'row', justifyContent: 'center', gap: Spacing.sm, marginBottom: Spacing.xl },
+  modeButton: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    backgroundColor: 'rgba(0,0,0,0.6)', 
+    paddingHorizontal: Spacing.lg, 
+    paddingVertical: Spacing.md, 
+    borderRadius: 24, 
+    gap: 8, 
+    borderWidth: 2, 
+    borderColor: 'rgba(255,255,255,0.2)',
+    minWidth: 100,
+    justifyContent: 'center'
+  },
+  modeButtonActive: { 
+    backgroundColor: 'rgba(255,255,255,0.25)', 
+    borderColor: Colors.primary,
+    borderWidth: 2
+  },
+  modeButtonText: { color: Colors.light, fontSize: 13, fontWeight: '600' },
   actionRow: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: Spacing.lg },
-  captureButton: { width: 70, height: 70, borderRadius: 35, borderWidth: 3, borderColor: Colors.light, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.3)' },
-  captureButtonInner: { width: 56, height: 56, borderRadius: 28, backgroundColor: Colors.light },
+  captureButton: { 
+    width: 74, 
+    height: 74, 
+    borderRadius: 37, 
+    borderWidth: 4, 
+    borderColor: Colors.light, 
+    justifyContent: 'center', 
+    alignItems: 'center', 
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    position: 'relative'
+  },
+  captureButtonInner: { width: 60, height: 60, borderRadius: 30, backgroundColor: Colors.light },
   recordingButton: { borderColor: Colors.danger },
-  recordingInner: { width: 24, height: 24, borderRadius: 4, backgroundColor: Colors.danger },
-  measureControls: { flexDirection: 'row', gap: Spacing.sm },
-  controlButton: { width: 50, height: 50, borderRadius: 25, backgroundColor: 'rgba(255,255,255,0.1)', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)' },
-  measureSelector: { position: 'absolute', left: 0, right: 0, height: 350, backgroundColor: Colors.dark, borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: Spacing.lg },
-  selectorHandle: { width: 40, height: 4, backgroundColor: Colors.border, borderRadius: 2, alignSelf: 'center', marginBottom: Spacing.md },
-  selectorTitle: { color: Colors.textPrimary, fontSize: 18, fontWeight: '300', marginBottom: Spacing.md },
-  selectorItem: { flexDirection: 'row', alignItems: 'center', padding: Spacing.md, borderRadius: 12, marginBottom: Spacing.sm, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', backgroundColor: 'rgba(255,255,255,0.05)' },
-  selectorItemActive: { borderColor: Colors.primary, backgroundColor: 'rgba(255,255,255,0.1)' },
-  selectorItemText: { marginLeft: Spacing.md },
-  selectorItemTitle: { color: Colors.textPrimary, fontSize: 14, fontWeight: '400' },
-  selectorItemSubtitle: { color: Colors.textSecondary, fontSize: 12 },
-  settingsPanel: { position: 'absolute', right: 0, top: 0, bottom: 0, width: SCREEN_WIDTH * 0.85, backgroundColor: Colors.dark, padding: Spacing.lg },
+  recordingInner: { width: 28, height: 28, borderRadius: 6, backgroundColor: Colors.danger },
+  recordingText: {
+    position: 'absolute',
+    bottom: -24,
+    color: Colors.danger,
+    fontSize: 12,
+    fontWeight: 'bold',
+    letterSpacing: 2
+  },
+  measureControls: { flexDirection: 'row', gap: Spacing.md },
+  controlButton: { 
+    width: 56, 
+    height: 56, 
+    borderRadius: 28, 
+    backgroundColor: 'rgba(0,0,0,0.6)', 
+    justifyContent: 'center', 
+    alignItems: 'center', 
+    borderWidth: 2, 
+    borderColor: 'rgba(255,255,255,0.2)' 
+  },
+  
+  // Measure Selector
+  measureSelector: { 
+    position: 'absolute', 
+    left: 0, 
+    right: 0, 
+    height: 380, 
+    backgroundColor: Colors.dark, 
+    borderTopLeftRadius: 24, 
+    borderTopRightRadius: 24, 
+    padding: Spacing.xl,
+    borderTopWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)'
+  },
+  selectorHandle: { width: 40, height: 4, backgroundColor: Colors.border, borderRadius: 2, alignSelf: 'center', marginBottom: Spacing.lg },
+  selectorTitle: { color: Colors.textPrimary, fontSize: 20, fontWeight: '600', marginBottom: Spacing.lg },
+  selectorItem: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    padding: Spacing.lg, 
+    borderRadius: 16, 
+    marginBottom: Spacing.md, 
+    borderWidth: 2, 
+    borderColor: 'rgba(255,255,255,0.1)', 
+    backgroundColor: 'rgba(255,255,255,0.05)' 
+  },
+  selectorItemActive: { borderColor: Colors.primary, backgroundColor: 'rgba(255,255,255,0.15)' },
+  selectorItemText: { marginLeft: Spacing.lg, flex: 1 },
+  selectorItemTitle: { color: Colors.textPrimary, fontSize: 16, fontWeight: '600' },
+  selectorItemSubtitle: { color: Colors.textSecondary, fontSize: 13, marginTop: 4 },
+  
+  // Settings Panel
+  settingsPanel: { 
+    position: 'absolute', 
+    right: 0, 
+    top: 0, 
+    bottom: 0, 
+    width: SCREEN_WIDTH * 0.85, 
+    backgroundColor: Colors.dark, 
+    padding: Spacing.xl,
+    borderLeftWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)'
+  },
   settingsPanelHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 50, marginBottom: Spacing.xl },
-  settingsPanelTitle: { color: Colors.textPrimary, fontSize: 22, fontWeight: '300' },
+  settingsPanelTitle: { color: Colors.textPrimary, fontSize: 24, fontWeight: '600' },
   settingsContent: { flex: 1 },
   settingGroup: { marginBottom: Spacing.xl },
-  settingLabel: { color: Colors.textSecondary, fontSize: 11, textTransform: 'uppercase', letterSpacing: 1, marginBottom: Spacing.md },
+  settingLabel: { color: Colors.textSecondary, fontSize: 11, textTransform: 'uppercase', letterSpacing: 1.5, marginBottom: Spacing.md, fontWeight: '600' },
   settingOptions: { gap: Spacing.sm },
-  settingOption: { paddingHorizontal: Spacing.md, paddingVertical: Spacing.md, borderRadius: 8, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', backgroundColor: 'rgba(255,255,255,0.05)' },
-  settingOptionActive: { borderColor: Colors.primary, backgroundColor: 'rgba(255,255,255,0.1)' },
-  settingOptionText: { color: Colors.textSecondary, fontSize: 14 },
-  settingOptionTextActive: { color: Colors.primary, fontWeight: '500' },
-  calibrationInfo: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, marginBottom: Spacing.sm },
-  calibrationInfoText: { color: Colors.textPrimary, fontSize: 14 },
-  recalibrateButton: { padding: Spacing.md, backgroundColor: 'rgba(255,152,0,0.2)', borderRadius: 8, borderWidth: 1, borderColor: 'rgba(255,152,0,0.5)' },
-  recalibrateButtonText: { color: '#FF9800', fontSize: 14, textAlign: 'center', fontWeight: '500' },
+  settingOption: { 
+    paddingHorizontal: Spacing.lg, 
+    paddingVertical: Spacing.md, 
+    borderRadius: 12, 
+    borderWidth: 2, 
+    borderColor: 'rgba(255,255,255,0.1)', 
+    backgroundColor: 'rgba(255,255,255,0.05)' 
+  },
+  settingOptionActive: { borderColor: Colors.primary, backgroundColor: 'rgba(255,255,255,0.15)' },
+  settingOptionText: { color: Colors.textSecondary, fontSize: 14, fontWeight: '500' },
+  settingOptionTextActive: { color: Colors.primary, fontWeight: '700' },
+  calibrationInfo: { flexDirection: 'row', alignItems: 'center', gap: Spacing.sm, marginBottom: Spacing.md, backgroundColor: 'rgba(129,199,132,0.1)', padding: Spacing.md, borderRadius: 12 },
+  calibrationInfoText: { color: Colors.primary, fontSize: 14, fontWeight: '600' },
+  recalibrateButton: { 
+    padding: Spacing.md, 
+    backgroundColor: 'rgba(255,152,0,0.2)', 
+    borderRadius: 12, 
+    borderWidth: 2, 
+    borderColor: 'rgba(255,152,0,0.5)' 
+  },
+  recalibrateButtonText: { color: '#FF9800', fontSize: 14, textAlign: 'center', fontWeight: '600' },
+  infoBox: {
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    padding: Spacing.lg,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)'
+  },
+  infoText: {
+    color: Colors.textPrimary,
+    fontSize: 14,
+    marginBottom: 4,
+    fontWeight: '500'
+  },
+  infoTextSmall: {
+    color: Colors.textMuted,
+    fontSize: 12,
+    marginTop: 8,
+    fontStyle: 'italic'
+  },
+  
+  // Calibration Screen
   calibrationOverlay: { position: 'absolute', top: 80, left: 20, right: 20, alignItems: 'center' },
-  calibrationBox: { backgroundColor: 'rgba(0,0,0,0.85)', padding: 20, borderRadius: 16, alignItems: 'center', maxWidth: SCREEN_WIDTH - 40 },
-  calibrationTitle: { color: Colors.light, fontSize: 20, fontWeight: 'bold', marginTop: 12, marginBottom: 12 },
+  calibrationBox: { backgroundColor: 'rgba(0,0,0,0.9)', padding: 24, borderRadius: 20, alignItems: 'center', maxWidth: SCREEN_WIDTH - 40, borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)' },
+  calibrationTitle: { color: Colors.light, fontSize: 22, fontWeight: 'bold', marginTop: 12, marginBottom: 12 },
   calibrationText: { color: Colors.textSecondary, fontSize: 14, textAlign: 'center', lineHeight: 22 },
   calibrationStep: { color: Colors.primary, fontSize: 16, fontWeight: 'bold', marginTop: 16 },
   calibrationButtons: { position: 'absolute', bottom: 40, left: 0, right: 0, flexDirection: 'row', justifyContent: 'space-around', paddingHorizontal: 20 },
-  calibrationButton: { backgroundColor: 'rgba(255,255,255,0.2)', paddingHorizontal: 24, paddingVertical: 12, borderRadius: 8 },
+  calibrationButton: { backgroundColor: 'rgba(255,255,255,0.2)', paddingHorizontal: 28, paddingVertical: 14, borderRadius: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.3)' },
   calibrationButtonText: { color: Colors.light, fontSize: 14, fontWeight: '600' },
-  volumeModal: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.8)', justifyContent: 'center', alignItems: 'center' },
-  volumeModalContent: { backgroundColor: Colors.dark, padding: 24, borderRadius: 16, width: SCREEN_WIDTH - 80, borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)' },
-  volumeModalTitle: { color: Colors.textPrimary, fontSize: 20, fontWeight: '300', marginBottom: 16 },
-  volumeModalLabel: { color: Colors.textSecondary, fontSize: 14, marginBottom: 16 },
-  volumeInputRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 24 },
-  volumeInput: { flex: 1, backgroundColor: 'rgba(255,255,255,0.1)', color: Colors.light, padding: 12, borderRadius: 8, fontSize: 18, borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)' },
-  volumeUnit: { color: Colors.textPrimary, fontSize: 16, marginLeft: 12, fontWeight: '600' },
+  
+  // Volume Modal
+  volumeModal: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.85)', justifyContent: 'center', alignItems: 'center' },
+  volumeModalContent: { backgroundColor: Colors.dark, padding: 28, borderRadius: 20, width: SCREEN_WIDTH - 60, borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)' },
+  volumeModalTitle: { color: Colors.textPrimary, fontSize: 22, fontWeight: '600', marginBottom: 16 },
+  volumeModalLabel: { color: Colors.textSecondary, fontSize: 14, marginBottom: 20 },
+  volumeInputRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 28 },
+  volumeInput: { 
+    flex: 1, 
+    backgroundColor: 'rgba(255,255,255,0.1)', 
+    color: Colors.light, 
+    padding: 16, 
+    borderRadius: 12, 
+    fontSize: 20, 
+    borderWidth: 2, 
+    borderColor: 'rgba(255,255,255,0.2)',
+    fontWeight: '600'
+  },
+  volumeUnit: { color: Colors.textPrimary, fontSize: 18, marginLeft: 16, fontWeight: '700' },
   volumeModalButtons: { flexDirection: 'row', gap: 12 },
-  volumeModalButton: { flex: 1, padding: 12, borderRadius: 8, alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.1)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)' },
+  volumeModalButton: { 
+    flex: 1, 
+    padding: 16, 
+    borderRadius: 12, 
+    alignItems: 'center', 
+    backgroundColor: 'rgba(255,255,255,0.1)', 
+    borderWidth: 2, 
+    borderColor: 'rgba(255,255,255,0.2)' 
+  },
   volumeModalButtonPrimary: { backgroundColor: Colors.primary, borderColor: Colors.primary },
-  volumeModalButtonText: { color: Colors.textSecondary, fontSize: 14, fontWeight: '600' },
+  volumeModalButtonText: { color: Colors.textSecondary, fontSize: 15, fontWeight: '700' },
   volumeModalButtonTextPrimary: { color: Colors.dark },
-});
+});, measureMode === 'distance' && styles.selectorItemActive]}
+          onPress={() => {
+            setMeasureMode('distance');
+            clearPoints();
+            toggleModeSelector();
+          }}
+        >
+          <Ionicons name="resize-outline" size={28} color={Colors.distance} />
+          <View style={styles.selectorItemText}>
+            <Text style={styles.selectorItemTitle}>📏 Distanz</Text>
+            <Text style={styles.selectorItemSubtitle}>Längen mit Segmentanzeige messen</Text>
+          </View>
+        </TouchableOpacity>
+
+        <TouchableOpacity 
+          style={[styles.selectorItem, measureMode === 'area' && styles.selectorItemActive]}
+          onPress={() => {
+            setMeasureMode('area');
+            clearPoints();
+            toggleModeSelector();
+          }}
+        >
+          <Ionicons name="square-outline" size={28} color={Colors.area} />
+          <View style={styles.selectorItemText}>
+            <Text style={styles.selectorItemTitle}>📐 Fläche (A × B)</Text>
+            <Text style={styles.selectorItemSubtitle}>2+ Punkte für Flächenberechnung</Text>
+          </View>
+        </TouchableOpacity>
+
+        <TouchableOpacity 
+          style={[styles.selectorItem
